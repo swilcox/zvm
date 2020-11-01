@@ -17,9 +17,9 @@
 import chunk
 import os
 
-import bitfield
-import zstackmanager
-from zlogging import log
+from . import bitfield
+from . import zstackmanager
+from .zlogging import log
 
 # The general format of Queztal is that of a "FORM" IFF file, which is
 # a container class for 'chunks'.
@@ -302,7 +302,7 @@ class QuetzalParser(object):
       raise QuetzalNoSuchSavefile
 
     log("Attempting to load saved game from '%s'" % savefile_path)
-    self._file = open(savefile_path)
+    self._file = open(savefile_path, "rb")
 
     # The python 'chunk' module is pretty dumb; it doesn't understand
     # the FORM chunk and the way it contains nested chunks.
@@ -310,18 +310,18 @@ class QuetzalParser(object):
     # we can start sucking out chunks.  This also allows us to
     # validate that the FORM type is "IFZS".
     header = self._file.read(4)
-    if header != "FORM":
+    if header != b"FORM":
       raise QuetzalUnrecognizedFileFormat
     bytestring = self._file.read(4)
-    self._len = ord(bytestring[0]) << 24
-    self._len += (ord(bytestring[1]) << 16)
-    self._len += (ord(bytestring[2]) << 8)
-    self._len += ord(bytestring[3])
+    self._len = (bytestring[0] << 24)
+    self._len += (bytestring[1] << 16)
+    self._len += (bytestring[2] << 8)
+    self._len += bytestring[3]
     log("Total length of FORM data is %d" % self._len)
     self._last_loaded_metadata["total length"] = self._len
 
     type = self._file.read(4)
-    if type != "IFZS":
+    if type != b"IFZS":
       raise QuetzalUnrecognizedFileFormat
 
     try:
@@ -384,7 +384,7 @@ class QuetzalWriter(object):
     ### image and put it into this chunk.  See ZMemory.generate_checksum().
     pass
 
-    return "0"
+    return b"0"
 
 
   def _generate_cmem_chunk(self):
@@ -392,7 +392,7 @@ class QuetzalWriter(object):
     image of the zmachine's main memory."""
 
     ### TODO:  debug this when ready
-    return "0"
+    return b"0"
 
     # XOR the original game image with the current one
     diffarray = list(self._zmachine._pristine_mem)
@@ -422,7 +422,7 @@ class QuetzalWriter(object):
     zmachine at this moment."""
 
     ### TODO:  write this
-    return "0"
+    return b"0"
 
 
   def _generate_anno_chunk(self):
@@ -430,7 +430,7 @@ class QuetzalWriter(object):
     interpreter which created the savefile."""
 
     ### TODO:  write this
-    return "0"
+    return b"0"
 
 
   #--------- Public APIs -----------
@@ -441,7 +441,7 @@ class QuetzalWriter(object):
     SAVEFILE_PATH."""
 
     log("Attempting to write game-state to '%s'" % savefile_path)
-    self._file = open(savefile_path, 'w')
+    self._file = open(savefile_path, 'wb')
 
     ifhd_chunk = self._generate_ifhd_chunk()
     cmem_chunk = self._generate_cmem_chunk()
@@ -452,9 +452,9 @@ class QuetzalWriter(object):
                        + len(stks_chunk) + len(anno_chunk)
 
     # Write main FORM chunk to hold other chunks
-    self._file.write("FORM")
+    self._file.write(b"FORM")
     ### TODO: self._file_write(total_chunk_size) -- spread it over 4 bytes
-    self._file.write("IFZS")
+    self._file.write(b"IFZS")
 
     # Write nested chunks.
     for chunk in (ifhd_chunk, cmem_chunk, stks_chunk, anno_chunk):

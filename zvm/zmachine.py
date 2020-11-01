@@ -5,14 +5,14 @@
 # root directory of this distribution.
 #
 
-from zstring import ZStringFactory
-from zmemory import ZMemory
-from zopdecoder import ZOpDecoder
-from zstackmanager import ZStackManager
-from zobjectparser import ZObjectParser
-from zcpu import ZCpu
-from zstreammanager import ZStreamManager
-import zlogging
+from .zstring import ZStringFactory
+from .zmemory import ZMemory
+from .zopdecoder import ZOpDecoder
+from .zstackmanager import ZStackManager
+from .zobjectparser import ZObjectParser
+from .zcpu import ZCpu
+from .zstreammanager import ZStreamManager
+from .zlogging import set_debug
 
 class ZMachineError(Exception):
   """General exception for ZMachine class"""
@@ -21,7 +21,7 @@ class ZMachine(object):
   """The Z-Machine black box."""
 
   def __init__(self, story, ui, debugmode=False):
-    zlogging.set_debug(debugmode)
+    set_debug(debugmode)
     self._pristine_mem = ZMemory(story) # the original memory image
     self._mem = ZMemory(story) # the memory image which changes during play
     self._stringfactory = ZStringFactory(self._mem)

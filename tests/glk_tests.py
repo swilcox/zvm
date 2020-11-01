@@ -9,7 +9,7 @@ import subprocess
 import ctypes
 from unittest import TestCase
 
-import glk_test_program
+from . import glk_test_program
 import zvm.glk as glk
 
 class AnyGlkTestsMixIn:

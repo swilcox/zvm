@@ -5,8 +5,8 @@
 # root directory of this distribution.
 #
 
-import bitfield
-from zlogging import log
+from .bitfield import BitField
+from .zlogging import log
 
 # This class that represents the "main memory" of the z-machine.  It's
 # readable and writable through normal indexing and slice notation,
@@ -76,15 +76,15 @@ class ZMemory(object):
                   None, None, None, None,
                   None, None, None, None)
 
-  def __init__(self, initial_string):
+  def __init__(self, initial_bytes):
     """Construct class based on a string that represents an initial
     'snapshot' of main memory."""
-    if initial_string is None:
+    if initial_bytes is None:
       raise ZMemoryBadInitialization
 
     # Copy string into a _memory sequence that represents main memory.
-    self._total_size = len(initial_string)
-    self._memory = [ord(x) for x in initial_string]
+    self._total_size = len(initial_bytes)
+    self._memory = [x for x in initial_bytes]
 
     # Figure out the different sections of memory
     self._static_start = self.read_word(0x0e)
@@ -131,14 +131,21 @@ class ZMemory(object):
 
   def print_map(self):
     """Pretty-print a description of the memory map."""
-    print "Dynamic memory: ", self._dynamic_start, "-", self._dynamic_end
-    print " Static memory: ", self._static_start, "-", self._static_end
-    print "   High memory: ", self._high_start, "-", self._high_end
+    print("Dynamic memory: ", self._dynamic_start, "-", self._dynamic_end)
+    print(" Static memory: ", self._static_start, "-", self._static_end)
+    print("   High memory: ", self._high_start, "-", self._high_end)
 
   def __getitem__(self, index):
     """Return the byte value stored at address INDEX.."""
-    self._check_bounds(index)
-    return self._memory[index]
+    if isinstance(index, slice):
+      start = index.start
+      end = index.stop
+      self._check_bounds(start)
+      self._check_bounds(end)
+      return self._memory[start:end]
+    else:
+      self._check_bounds(index)
+      return self._memory[index]
 
   def __setitem__(self, index, value):
     """Set VALUE in memory address INDEX."""
@@ -249,7 +256,7 @@ class ZMemory(object):
       raise ZMemoryIllegalWrite(address)
     log("Write %d to global variable %d" % (value, varnum))
     actual_address = self._global_variable_start + ((varnum - 0x10) * 2)
-    bf = bitfield.BitField(value)
+    bf = BitField(value)
     self._memory[actual_address] = bf[8:15]
     self._memory[actual_address + 1] = bf[0:7]
 

@@ -16,12 +16,13 @@
 
 import sys
 
-import zaudio
-import zscreen
-import zstream
-import zfilesystem
-import zui
-from zlogging import log
+from . import zaudio
+from . import zscreen
+from . import zstream
+from . import zfilesystem
+from . import zui
+from .zlogging import log
+
 
 class TrivialAudio(zaudio.ZAudio):
   def __init__(self):
@@ -200,7 +201,7 @@ class TrivialFilesystem(zfilesystem.ZFilesystem):
         file_obj.write(data)
         file_obj.close()
         success = True
-      except IOError, e:
+      except IOError as e:
         self.__report_io_error(e)
 
     return success
@@ -216,7 +217,7 @@ class TrivialFilesystem(zfilesystem.ZFilesystem):
         file_obj = open(filename, "rb")
         data = file_obj.read()
         file_obj.close()
-      except IOError, e:
+      except IOError as e:
         self.__report_io_error(e)
 
     return data
@@ -230,7 +231,7 @@ class TrivialFilesystem(zfilesystem.ZFilesystem):
     if filename:
       try:
         file_obj = open(filename, "w")
-      except IOError, e:
+      except IOError as e:
         self.__report_io_error(e)
 
     return file_obj
@@ -244,7 +245,7 @@ class TrivialFilesystem(zfilesystem.ZFilesystem):
     if filename:
       try:
         file_obj = open(filename, "r")
-      except IOError, e:
+      except IOError as e:
         self.__report_io_error(e)
 
     return file_obj

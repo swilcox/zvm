@@ -7,7 +7,7 @@
 #
 
 import re
-from zstring import ZStringFactory, ZsciiTranslator
+from .zstring import ZStringFactory, ZsciiTranslator
 
 class ZLexerError(Exception):
   "General exception for ZLexer class"
@@ -115,11 +115,11 @@ class ZLexer(object):
 
     if dict_addr is None:
       zseparators = self._separators
-      dict = self._dict
+      dct = self._dict
     else:
       num_entries, entry_length, zseparators, addr = \
                    self._parse_dict_header(dict_addr)
-      dict = self.get_dictionary(dict_addr)
+      dct = self.get_dictionary(dict_addr)
 
     # Our list of word separators are actually zscii codes that must
     # be converted to unicode before we can use them.
@@ -131,8 +131,8 @@ class ZLexer(object):
 
     final_list = []
     for word in token_list:
-      if dict.has_key(word):
-        byte_addr = dict[word]
+      if word in dct:
+        byte_addr = dct[word]
       else:
         byte_addr = 0
       final_list.append([word, byte_addr])

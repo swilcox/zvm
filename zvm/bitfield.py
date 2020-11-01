@@ -9,7 +9,7 @@
 # root directory of this distribution.
 #
 
-class BitField(object):
+class BitField:
     """An bitfield gives read/write access to the individual bits of a
     value, in array and slice notation.
 
@@ -28,31 +28,27 @@ class BitField(object):
         else:
             self._d = value
 
-    def __getitem__(self, index):
+    def __getitem__(self, n):
         """Get the value of a single bit."""
-        return (self._d >> index) & 1
+        if isinstance(n, slice):
+            start, end = (n.start, n.stop)
+            if start > end:
+                (start, end) = (end, start)
+            mask = 2**(end - start) -1
+            return (self._d >> start) & mask
+        return (self._d >> n) & 1
 
-    def __setitem__(self, index, value):
+    def __setitem__(self, n, value):
         """Set the value of a single bit."""
-        value    = (value&1L)<<index
-        mask     = (1L)<<index
-        self._d  = (self._d & ~mask) | value
-
-    def __getslice__(self, start, end):
-        """Get the integer value of a slice of bits."""
-        if start > end:
-            (start, end) = (end, start)
-        mask = 2L**(end - start) -1
-        return (self._d >> start) & mask
-
-    def __setslice__(self, start, end, value):
-        """Set the binary value of a slice of the field, using the
-        bits of the given integer."""
-        mask = 2L**(end - start) -1
-        value = (value & mask) << start
-        mask = mask << start
-        self._d = (self._d & ~mask) | value
-        return (self._d >> start) & mask
+        if isinstance(n, slice):            
+            mask = 2**(n.stop - n.start) - 1
+            value = (value & mask) << n.start
+            mask = mask << n.start
+            self._d = (self._d & ~mask) | value
+        else:
+            value    = (value & 1) << n
+            mask     = 1 << n
+            self._d  = (self._d & ~mask) | value
 
     def __int__(self):
         """Return the whole bitfield as an integer."""
